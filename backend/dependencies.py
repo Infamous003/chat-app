@@ -1,14 +1,17 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, WebSocket, Query, Depends
 from sqlmodel import Session, select
 from .models import User
 from datetime import datetime, timedelta, timezone
 import jwt
+from jwt.exceptions import InvalidTokenError 
 from bcrypt import hashpw, gensalt
+from .database import get_session
 
 
 SECRET_KEY = "72a29ca393337573268c0c33b2df524037a40ce0d7b286ef0114d3a83f08e8d2"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
 
 # Helper functions for authentication
 def get_password_hash(password):
@@ -17,6 +20,7 @@ def get_password_hash(password):
 def verify_password(plain_password, hashed_password):
     return hashpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8')) == hashed_password.encode('utf-8')
 
+
 def get_user(username: str, session: Session):
     query = select(User).where(User.username == username)
     user = session.exec(query).one_or_none()
@@ -24,6 +28,22 @@ def get_user(username: str, session: Session):
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
+
+
+def decode_token(session: Session, token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+    except InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    user = get_user(username=username, session=session)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return user
+
     
 def authenticate_user(username: str, password: str, session: Session):
     user = None
