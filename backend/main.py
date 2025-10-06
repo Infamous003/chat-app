@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from .database import engine, create_db_and_tables
+from .database import create_db_and_tables
 from .connection_manager import ConnectionManager
 from fastapi import WebSocket, WebSocketDisconnect
-from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,27 +21,19 @@ app = FastAPI(title="My API",
 
 manager = ConnectionManager()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 @app.get("/")
-async def read_root():
-    return {"message": "WHat's up!?"}
+async def get():
+    return {"detail": "Welcome to the Chat Application API"}
 
 
 @app.websocket("/ws")
-async def websocket_endpoint(websocket):
+async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
             data = await websocket.receive_text()
-            await manager.send_personal_message(f"You wrote: {data}", websocket)
-            await manager.broadcast(f"Client says: {data}")
+            await manager.send_personal_message("Message received", websocket)
+            await manager.broadcast(f"Client says: {data}", websocket.client)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         await manager.broadcast("A client disconnected.")
