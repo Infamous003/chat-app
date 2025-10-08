@@ -1,5 +1,6 @@
 from sqlmodel import SQLModel, Field
 from pydantic import BaseModel
+from datetime import datetime
 
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -30,3 +31,10 @@ class UserUpdate(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class Message(BaseModel):
+    user_id: int
+    username: str
+    message: str
+    time: str
