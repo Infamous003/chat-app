@@ -40,5 +40,5 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = D
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password")
 
-    access_token = create_access_token(user_data={"sub": user.username})
+    access_token = create_access_token(user_data={"sub": str(user.id), "username": user.username})
     return Token(access_token=access_token, token_type="bearer")

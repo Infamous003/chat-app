@@ -21,8 +21,8 @@ def verify_password(plain_password, hashed_password):
     return hashpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8')) == hashed_password.encode('utf-8')
 
 
-def get_user(username: str, session: Session):
-    query = select(User).where(User.username == username)
+def get_user(id: int, session: Session):
+    query = select(User).where(User.id == id)
     user = session.exec(query).one_or_none()
 
     if user is None:
@@ -31,15 +31,17 @@ def get_user(username: str, session: Session):
 
 
 def decode_token(session: Session, token: str):
+    print("Decoding token:", token)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        if username is None:
+        user_id = int(payload.get("sub"))
+        if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid credentials")
     except InvalidTokenError:
+        print("Invalid token error")
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    user = get_user(username=username, session=session)
+    user = get_user(id=user_id, session=session)
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     return user
@@ -58,7 +60,7 @@ def authenticate_user(username: str, password: str, session: Session):
     return user
 
 def create_access_token(user_data: dict):
-    # user_data dictionary contains the username
+    # user_data dictionary contains the username and id of the user
     to_encode = user_data.copy()
 
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
