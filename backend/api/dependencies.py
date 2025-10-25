@@ -1,11 +1,10 @@
-from fastapi import HTTPException, status, WebSocket, Query, Depends
+from fastapi import HTTPException, status
 from sqlmodel import Session, select
-from .models import User
+from ..db.models import User
 from datetime import datetime, timedelta, timezone
 import jwt
 from jwt.exceptions import InvalidTokenError 
 from bcrypt import hashpw, gensalt
-from .database import get_session
 
 
 SECRET_KEY = "72a29ca393337573268c0c33b2df524037a40ce0d7b286ef0114d3a83f08e8d2"

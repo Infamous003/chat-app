@@ -1,8 +1,8 @@
 from sqlmodel import SQLModel, create_engine, Session
+from ..core.config import settings
 
-# DATABASE_URL = "sqlite:///./test.db"
-DATABASE_URL = "postgresql+psycopg2://postgres:password123@localhost/chat-app"
-engine = create_engine(DATABASE_URL, echo=True) 
+
+engine = create_engine(settings.DATABASE_URL, echo=True) 
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)

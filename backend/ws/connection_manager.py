@@ -1,8 +1,6 @@
-from fastapi import WebSocket, WebSocketDisconnect
-from .dependencies import decode_token
-from .database import get_session
+from fastapi import WebSocket
+from ..api.dependencies import decode_token
 from sqlmodel import Session
-from .schemas import Message
 
 class ConnectionManager:
     def __init__(self):
@@ -23,3 +21,5 @@ class ConnectionManager:
         for connection in self.active_connections:
             if connection.client != sender_websocket.client:
                 await connection.send_json(message)
+
+manager = ConnectionManager()

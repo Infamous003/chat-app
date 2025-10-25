@@ -1,14 +1,11 @@
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from ..models import User
-from ..schemas import Token, UserRead, UserCreate
+from ...db.models import User
+from ...schemas.user import UserRead, UserCreate
+from ...schemas.security import Token
 from ..dependencies import authenticate_user, create_access_token, get_password_hash
 from sqlmodel import Session, select
-from ..database import get_session
-
-SECRET_KEY = "72a29ca393337573268c0c33b2df524037a40ce0d7b286ef0114d3a83f08e8d2"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 360
+from ...db.database import get_session
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
