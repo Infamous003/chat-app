@@ -34,7 +34,7 @@ def decode_token(session: Session, token: str):
     print("Decoding token:", token)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = int(payload.get("sub"))
+        user_id = payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid credentials")
     except InvalidTokenError:

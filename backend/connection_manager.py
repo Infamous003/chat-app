@@ -2,6 +2,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from .dependencies import decode_token
 from .database import get_session
 from sqlmodel import Session
+from .schemas import Message
 
 class ConnectionManager:
     def __init__(self):

@@ -58,6 +58,7 @@ async def websocket_endpoint(websocket: WebSocket,
             )
 
             payload = message.model_dump()
+            payload["user_id"] = str(payload["user_id"])
         
             await manager.send_personal_message({
                 "username": "system",

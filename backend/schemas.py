@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, UUID4
+from enum import Enum
+from uuid import uuid4, UUID
 
 
 class UserCreate(BaseModel):
@@ -8,7 +10,7 @@ class UserCreate(BaseModel):
 
 
 class UserRead(BaseModel):
-    id: int
+    id: UUID
     username: str
     email: str
 
@@ -26,7 +28,7 @@ class Token(BaseModel):
 
 
 class Message(BaseModel):
-    user_id: int
+    user_id: UUID4
     username: str
     message: str
     time: str
