@@ -8,8 +8,7 @@ from sqlmodel import Session
 from .database import get_session
 from .dependencies import decode_token
 from datetime import datetime, timezone
-from .models import Message
-import jwt
+from .schemas import Message
 
 SECRET_KEY = "72a29ca393337573268c0c33b2df524037a40ce0d7b286ef0114d3a83f08e8d2"
 ALGORITHM = "HS256"
