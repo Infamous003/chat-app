@@ -8,7 +8,7 @@ from sqlmodel import Session
 from .database import get_session
 from .dependencies import decode_token
 from datetime import datetime, timezone
-from .schemas import Message
+from .schemas import Message, MessageType
 
 SECRET_KEY = "72a29ca393337573268c0c33b2df524037a40ce0d7b286ef0114d3a83f08e8d2"
 ALGORITHM = "HS256"
@@ -53,20 +53,20 @@ async def websocket_endpoint(websocket: WebSocket,
             message = Message(
                 user_id=user.id,
                 username=user.username,
-                message=message,
-                time=datetime.now(timezone.utc).isoformat()
+                message=message
             )
-
-            payload = message.model_dump()
+            
+            payload = message.model_dump(mode="json")
             payload["user_id"] = str(payload["user_id"])
-        
-            await manager.send_personal_message({
-                "username": "system",
-                "message": f"Message received",
-                "time": datetime.now(timezone.utc).isoformat()
-            }, websocket)
 
             await manager.broadcast(payload, websocket)
+
+            system_payload = Message(
+                message_type=MessageType.SYSTEM,
+                message="Received"
+            )
+            await manager.send_personal_message(system_payload.model_dump(mode="json"), websocket)
+
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         await manager.broadcast("A client disconnected.")
