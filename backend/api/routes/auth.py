@@ -1,11 +1,12 @@
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from ...db.models import User
-from ...schemas.user import UserRead, UserCreate
-from ...schemas.security import Token
-from ..dependencies import authenticate_user, create_access_token, get_password_hash
+from backend.db.models import User
+from backend.schemas.user import UserRead, UserCreate
+from backend.schemas.security import Token
+from backend.core.security import authenticate_user
+from backend.core.security import create_access_token, hash_password
 from sqlmodel import Session, select
-from ...db.database import get_session
+from backend.db.database import get_session
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -22,7 +23,7 @@ def register(user_credentials: UserCreate, session: Session = Depends(get_sessio
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists")
     else:
         user = User(**user_credentials.model_dump())
-        user.password = get_password_hash(user.password)
+        user.password = hash_password(user.password)
         session.add(user)
         session.commit()
         session.refresh(user)

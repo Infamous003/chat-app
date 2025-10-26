@@ -1,9 +1,9 @@
 from fastapi import WebSocket, Depends, Query, APIRouter, WebSocketDisconnect
 from sqlmodel import Session
-from ...db.database import get_session
-from ..dependencies import decode_token
-from ...ws.connection_manager import manager
-from ...schemas.message import Message, MessageType
+from backend.db.database import get_session
+from backend.core.security import decode_access_token
+from backend.ws.connection_manager import manager
+from backend.schemas.message import Message, MessageType
 
 router = APIRouter(prefix="/ws", tags=["Websocket"])
 
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/ws", tags=["Websocket"])
 async def websocket_endpoint(websocket: WebSocket,
                              session: Session = Depends(get_session),
                              token: str = Query(...)):
-    user = decode_token(session=session, token=token)
+    user = decode_access_token(session=session, token=token)
     await manager.connect(websocket, token, session=session)
     
     try:

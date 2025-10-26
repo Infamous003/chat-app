@@ -1,5 +1,5 @@
 from fastapi import WebSocket
-from ..api.dependencies import decode_token
+from backend.core.security import decode_access_token
 from sqlmodel import Session
 
 class ConnectionManager:
@@ -9,7 +9,7 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket, token: str, session: Session):
         await websocket.accept()
         self.active_connections.append(websocket)
-        user = decode_token(token=token, session=session)
+        user = decode_access_token(token=token, session=session)
 
     def disconnect(self, websocket: WebSocket):
         self.active_connections.remove(websocket)
