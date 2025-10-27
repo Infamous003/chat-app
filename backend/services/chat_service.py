@@ -2,29 +2,33 @@ from datetime import datetime, timezone
 from backend.schemas.message import Message, MessageType
 from backend.ws.connection_manager import manager, ConnectionManager
 from fastapi import WebSocket
+from backend.db.models import User
 
 class ChatService:
     def __init__(self, manager: ConnectionManager):
         self.manager = manager
     
-    async def handle_message(self, user, data: dict, websocket: WebSocket):
+    async def handle_incoming_message(self, user: User, data: dict, websocket: WebSocket):
         message_text = data.get("message")
 
         if not message_text:
-            await self.send_system_message("Empty message ignored", websocket)
+            await self.send_system_message(str(user.id), "Empty message ignored", MessageType.ERROR)
+            return
         
         msg = Message(
             user_id=user.id,
             username=user.username,
             message=message_text
         )
+        payload = msg.model_dump(mode="json")
 
-        await self.manager.broadcast(msg.model_dump(mode="json"), sender=websocket)
+        await self.manager.broadcast(payload, exclude_user_id=str(user.id))
     
-    async def send_system_message(self, text: str, websocket, msg_type: MessageType):
+    async def send_system_message(self, user_id: str, text: str, message_type: MessageType):
         sys_message = Message(
             message=text,
-            message_type=msg_type,
+            message_type=message_type,
         )
-        await self.manager.send_personal_message(sys_message.model_dump(mode="json"), websocket)
+        payload = sys_message.model_dump(mode="json")
+        await self.manager.send_personal_message(user_id, payload)
         
