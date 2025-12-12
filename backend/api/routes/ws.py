@@ -5,6 +5,7 @@ from backend.ws.connection_manager import manager
 from backend.schemas.message import Message, MessageType
 from backend.services.auth_service import AuthService
 from backend.services.chat_service import ChatService
+from json import JSONDecodeError
 
 router = APIRouter(prefix="/ws", tags=["Websocket"])
 
@@ -18,10 +19,13 @@ async def websocket_endpoint(websocket: WebSocket,
     user = auth_service.decode_access_token(token=token)
     await manager.connect(websocket, user)
     
-    try:
-        while True:
+    while True:
+        try:
             data = await websocket.receive_json()
             await chat_service.handle_incoming_message(user, data, websocket)
-    except WebSocketDisconnect:
-        manager.disconnect(str(user.id)) # converting UUID to string
-        await manager.broadcast(f"#{user.username} has left the chat", str(user.id))
+        except JSONDecodeError:
+            await chat_service.send_system_message(str(user.id), "Invalid JSON", MessageType.ERROR)
+        except WebSocketDisconnect:
+            manager.disconnect(str(user.id)) # converting UUID to string
+            await manager.broadcast(f"#{user.username} has left the chat", str(user.id))
+            break

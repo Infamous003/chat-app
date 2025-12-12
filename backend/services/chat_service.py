@@ -9,10 +9,14 @@ class ChatService:
         self.manager = manager
     
     async def handle_incoming_message(self, user: User, data: dict, websocket: WebSocket):
-        message_text = data.get("message")
+        if "message" not in data:
+            await self.send_system_message(str(user.id), "Missing 'message' field", MessageType.ERROR)
+            return
+        
+        message_text = data["message"]
 
-        if not message_text:
-            await self.send_system_message(str(user.id), "Empty message ignored", MessageType.ERROR)
+        if not isinstance(message_text, str) or not message_text.strip():
+            await self.send_system_message(str(user.id), "Empty or non-string messages are ignored", MessageType.ERROR)
             return
         
         msg = Message(
